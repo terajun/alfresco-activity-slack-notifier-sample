@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+   <bean id="feedNotifier" class="org.alfresco.repo.activities.feed.FeedNotifierImpl">
+      <property name="personService" ref="PersonService"/>
+      <property name="nodeService" ref="NodeService"/>
+      <property name="jobLockService" ref="JobLockService"/>
+      <property name="namespaceService" ref="NamespaceService"/>
+      <property name="transactionService" ref="TransactionService"/>
+      <property name="sysAdminParams" ref="sysAdminParams"/>
+      <property name="repoAdminService" ref="repoAdminService"/>
+      <property name="feedEmailTemplateLocation" ref="feedEmailTemplateLocation"/>
+      <property name="fileFolderService" ref="FileFolderService"/>
+      <property name="searchService" ref="SearchService"/>
+      <!--
+      <property name="userNotifier" ref="emailUserNotifier"/>
+      -->
+      <property name="userNotifier" ref="slackUserNotifier"/>
+      <property name="numThreads" value="${activities.feedNotifier.numThreads}"/>
+      <property name="batchSize" value="${activities.feedNotifier.batchSize}"/>
+   </bean>
+   
+   <!--  Feed Slack Notifier -->
+    
+   <bean id="slackUserNotifier" class="jp.aegif.alfresco.repo.activities.feed.SlackUserNotifier">
+      <property name="activitiesFeedModelBuilderFactory" ref="feedModelBuilderFactory"/>
+      <property name="activityService" ref="activityService"/>
+      <property name="namespaceService" ref="NamespaceService"/>
+      <property name="repoAdminService" ref="repoAdminService"/>
+      <property name="nodeService" ref="NodeService"/>
+      <property name="siteService" ref="SiteService"/>
+      <property name="authenticationContext" ref="authenticationContext"/>
+      <property name="excludedEmailSuffixes">
+          <list>
+              <value>admin@alfresco.com</value>
+          </list>
+      </property>
+      <property name="slackWebhookUrl" value="${activities.feedNotifier.slackWebhookUrl}"/>
+   </bean>
+   
+   <!-- テストしやすくするためにアクティビティフィードからfile-downloadを除外しない設定にする -->
+   <bean id="feedModelBuilderPrototype" class="org.alfresco.repo.activities.feed.DefaultActivitiesFeedModelBuilder" scope="prototype">
+      <property name="ignoredActivityTypes">
+         <set>
+            <value>org.alfresco.documentlibrary.file-previewed</value>
+            <!--
+            <value>org.alfresco.documentlibrary.file-downloaded</value>
+            -->
+         </set>
+      </property>
+   </bean>
+</beans>
